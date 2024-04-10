@@ -34,10 +34,10 @@ class A_Star_Search(A_Star_Search_Base):
                 0 <= pos[1] < self.grid_size[1])
 
     def _get_neighbor_pos_list(
-        self, pos: Tuple[int, int]) -> List[Tuple[int, int]]:
-        (x, y) = pos
-
+        self, pos: Tuple[int, int]
+    ) -> List[Tuple[int, int]]:
         # Follow the specific order for neighbor exploration
+        (x, y) = pos
         candidates = [
             (x - 1, y), (x, y - 1), (x + 1, y), (x, y + 1)
         ]
@@ -52,7 +52,9 @@ class A_Star_Search(A_Star_Search_Base):
 
     def _get_node(self, pos: Tuple[int, int]) -> GridAstarNode:
         if pos not in self._nodes:
-            # No need to set neighbors here. Neighbors are built on the fly
+            # No need to set neighbors here.
+            # Neighbors are constructed on the fly for saving memory.
+            # Do not precompute and store them.
             self._nodes[pos] = GridAstarNode(
                 pos=pos, cost_g=None, cost_f=None, bend_count=None,
                 visited=False, parent=None, neighbors=[]
@@ -105,7 +107,7 @@ class A_Star_Search(A_Star_Search_Base):
            problem
         """
         # TODO initialize any auxiliary data structure you need
-        self._nodes = dict()  # Nodes (GridAstarNode) are created on the fly
+        self._nodes = dict()  # Nodes (GridAstarNode) are constructed on the fly
         self._source_pos = (self.pin_pos_x[0], self.pin_pos_y[0])
         self._target_pos = (self.pin_pos_x[1], self.pin_pos_y[1])
         self._pq = AdvancedPriorityQueue()
@@ -164,24 +166,24 @@ class A_Star_Search(A_Star_Search_Base):
                 self._relax(node, neighbor_node)
 
         # Data to be returned
-        path_list, wl = [], 0
+        path, wl = [], 0
 
         # Backtrack
         if path_found:
             # Backtrack from the target and merge paths
-            path_list = self._merge_path(
+            path = self._merge_path(
                 self._backtrack(self._nodes[self._target_pos]))
 
-            # Calculate wirelength from path_list
-            wl = sum([self._find_manhattan_dist_to_target(path[0], path[1])
-                      for path in path_list])
+            # Calculate wirelength from path
+            wl = sum([self._find_manhattan_dist_to_target(u, v)
+                      for (u, v) in path])
         else:
-            print('[Error] Cannot not find a path from source', self._source_pos,
+            print('[Error] Cannot find a path from source', self._source_pos,
                   'to target', self._target_pos)
 
         # Message
         print(f'[Info] Source: {self._source_pos}; Target: {self._target_pos}')
         print(f'[Info]   Wirelength: {wl}; #Visited: {n_visited}')
 
-        return path_list, wl, [wl], [n_visited]
+        return path, wl, [wl], [n_visited]
 
